@@ -1,26 +1,41 @@
-# OS
-.DS_Store
-Thumbs.db
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*~
-
-# Local environment / secrets
-.env
-.env.*
-!.env.example
-
-# Common generated folders
-node_modules/
-dist/
-build/
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
 
-# Logs / temporary files
-*.log
-*.tmp
-*.bak
+# Blender scene files / backups
+# Keep public demo .blend files out of the repo until their asset rights are explicitly reviewed.
+*.blend
+*.blend1
+*.blend2
+*.blend@
+*.blend~
+*.blend.lock
+
+# Local production output
+TressIR-production/
+production/
+checkpoints/
+revisions/
+active.json
+
+# Test / build artifacts
+build/
+dist/
+tests/_artifacts/
+*.zip
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local-only release scratch
+LICENSE-TO-CHOOSE.md
+
+# Local config / secrets
+.env
+.env.*
+*.local.json
+config.local.*

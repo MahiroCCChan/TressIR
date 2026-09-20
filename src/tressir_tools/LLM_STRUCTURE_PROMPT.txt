@@ -1,0 +1,35 @@
+你负责将参考发型的一组主要造型结构，解释为可编辑的发束/发片组合。使用当前 TressIR structure 接口，不调用生图，不手工写网格顶点。
+
+先看完整原图，再看本次要做的局部。先读 structure.json 与 STRUCTURE_WORKFLOW.md。source 指纹、图片尺寸、路径保持不变。允许合理设计性补全，不能将推测深度当成真实测量。
+
+先辨别图中哪些线表示独立叠压的发束，哪些是同一片上的脊/沟槽，哪些只是高光、阴影或细丝。不将全部线条拆成独立物件。不要因为总轮廓连通，就自动把所有内部结构合成一块光滑薄片。
+
+文件 schema 是 sword06c.structure.v1。顶层 id 为组 ID；calibration 与 v4.1 trace 一致，坐标是完整图的 0..1000、左上原点、向下为正，所有部件共用同一 origin_uv、height_span_v、height_mm。没有自动相机标定；优先使用大致正面的参考，明显透视时应先说明适用性。
+
+parts 中每件必须填写：
+- id：稳定独立 Part ID，例如 CENTER_BACK / CENTER_SWEEP，不能重名。
+- name、role：说明它如何构成原图造型。
+- nodes：沿本件完整闭合轮廓，3..64 个节点，格式与 trace 相同（id、point、可选 in/out、kind、out_evidence）。被遮挡的边界仍要补全，并标 inferred；可见轮廓标 observed。尖端不能随意抹平。
+- notes：具体指出可见、推测、简化的部分。文字仅用于解释，不会自动变成几何。
+- depth：必须显式给出 basis=estimated、note、4..24 个 stations。每项 u、center_y_mm、half_depth_mm、tilt_deg；u 包含 0 和 1，负 Y 为前方。厚度必须正。根据图里的层次和已有头模/既定尺寸给出可修改的初稿，不能省略后期待默认值还原造型。
+- ridges：四控制点 Bézier 脊线，格式同 trace；它驱动前表面起伏。可以 []，但 surface_note 必须解释为何足够。不能把高光带全做成凸条。
+- surface_note：解释本片内部结构用几何、脊线还是主动简化来表达。
+
+overlaps 写需要保留的实际叠压。每项 front、back、basis=observed/inferred、note、gap_mm；可选 region_uv=[left,top,right,bottom] 限定图中范围。只声明实际存在投影重叠的部位，不要给互不相交的所有组合编造关系。正面关系可以作为设计解释；不是唯一真相。该版本只支持沿公共 Y 轴的局部矩形采样检查，复杂交叉可分区域声明。
+
+一组可以有多个 independently editable 部件，也可以只有一块带脊线的连通发片。不是强制拆成单束。首次只处理用户指定的范围，不悄悄扩为整头。
+
+填写后调用：
+from tressir_tools import structure
+reviewed = structure.preview(r'完整的 structure.json 路径')
+
+查看返回的 structure-review.png，以及每个 PART-review.png。复核各自轮廓和隐蔽补全，不能只看四条彩色线好看。检查 ready_to_generate 与 depth_checks。发现具体偏差直接改对应部件参数再 preview。
+
+核对后调用：
+built = structure.generate(bpy.context, reviewed['manifest'], project_root)
+
+结果是多件候选，它们已按同一标尺装配，不是散落的局部原点。每一件仍能用原 v4 深度控制、辅助曲面、Lattice、export 和 production.accept。
+
+结构生成前会重新检查源图、参数指纹与所声明的叠压；之后编辑过几何，应选中组内物件，使用 Check current group overlaps，并查看正面/斜面/侧面/背面。这个检查不是精确全局碰撞或审美认证。
+
+美术还不满意时保留候选，修正具体的走向、宽度、深度或叠压。不得仅因为“不像”就清空场景或丢掉全部结果。保存候选到新 .blend 或导出参数；逐件 Accept 是独立生产提交，不等于自动整组审批。
