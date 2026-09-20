@@ -1,0 +1,67 @@
+name: Release v0.1.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release-v0.1.0.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build add-on ZIP
+        run: python scripts/build_addon_zip.py
+
+      - name: Create release notes
+        shell: bash
+        run: |
+          VERSION="$(cat VERSION)"
+          ASSET="dist/TressIR-Hair-Tools-${VERSION}.zip"
+          SHA256="$(sha256sum "$ASSET" | awk '{print $1}')"
+          {
+            echo "# TressIR v${VERSION}"
+            echo
+            echo "First public release of TressIR: a structured intermediate representation and deterministic geometry toolchain for LLM-assisted stylized hair authoring in Blender."
+            echo
+            echo "## Highlights"
+            echo
+            echo "- Blender 5.2-oriented add-on/tooling source"
+            echo "- Structured hair representations, deterministic geometry generation, review and validation tools"
+            echo "- Quick-start guide, public API notes, validation notes, examples, and research limitations"
+            echo "- MIT licensed"
+            echo
+            echo "See `QUICKSTART.md`, `docs/VALIDATION.md`, and `docs/LIMITATIONS.md` for usage and scope."
+            echo
+            echo "**Release asset SHA-256:** `$SHA256`"
+            echo
+            echo "The downloadable ZIP is built from the public source by GitHub Actions. The pre-release audit in `RELEASE_AUDIT.md` records the separately built and install-tested local archive; ZIP container metadata can make archive hashes differ even when packaged source files are identical."
+          } > release-notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION="$(cat VERSION)"
+          TAG="v${VERSION}"
+          ASSET="dist/TressIR-Hair-Tools-${VERSION}.zip"
+          TARGET="30530bd84dad5b65cc32b7876532dc05205850a4"
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "TressIR v${VERSION}" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "$ASSET" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET" \
+              --title "TressIR v${VERSION}" \
+              --notes-file release-notes.md
+          fi
