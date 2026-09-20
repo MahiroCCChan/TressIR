@@ -27,22 +27,16 @@ jobs:
           ASSET="dist/TressIR-Hair-Tools-${VERSION}.zip"
           SHA256="$(sha256sum "$ASSET" | awk '{print $1}')"
           {
-            echo "# TressIR v${VERSION}"
-            echo
-            echo "First public release of TressIR: a structured intermediate representation and deterministic geometry toolchain for LLM-assisted stylized hair authoring in Blender."
-            echo
-            echo "## Highlights"
-            echo
-            echo "- Blender 5.2-oriented add-on/tooling source"
-            echo "- Structured hair representations, deterministic geometry generation, review and validation tools"
-            echo "- Quick-start guide, public API notes, validation notes, examples, and research limitations"
-            echo "- MIT licensed"
-            echo
-            echo "See `QUICKSTART.md`, `docs/VALIDATION.md`, and `docs/LIMITATIONS.md` for usage and scope."
-            echo
-            echo "**Release asset SHA-256:** `$SHA256`"
-            echo
-            echo "The downloadable ZIP is built from the public source by GitHub Actions. The pre-release audit in `RELEASE_AUDIT.md` records the separately built and install-tested local archive; ZIP container metadata can make archive hashes differ even when packaged source files are identical."
+            printf '# TressIR v%s\n\n' "$VERSION"
+            printf '%s\n\n' 'First public release of TressIR: a structured intermediate representation and deterministic geometry toolchain for LLM-assisted stylized hair authoring in Blender.'
+            printf '## Highlights\n\n'
+            printf '%s\n' '- Blender 5.2-oriented add-on/tooling source'
+            printf '%s\n' '- Structured hair representations, deterministic geometry generation, review and validation tools'
+            printf '%s\n' '- Quick-start guide, public API notes, validation notes, examples, and research limitations'
+            printf '%s\n\n' '- MIT licensed'
+            printf '%s\n\n' 'See `QUICKSTART.md`, `docs/VALIDATION.md`, and `docs/LIMITATIONS.md` for usage and scope.'
+            printf '**Release asset SHA-256:** `%s`\n\n' "$SHA256"
+            printf '%s\n' 'The downloadable ZIP is built from the public source by GitHub Actions. The pre-release audit in `RELEASE_AUDIT.md` records the separately built and install-tested local archive; ZIP container metadata can make archive hashes differ even when packaged source files are identical.'
           } > release-notes.md
 
       - name: Publish GitHub Release
